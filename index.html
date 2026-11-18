@@ -918,7 +918,8 @@ const DAYS = [
     desc: 'MF8471 落地 → 打车约 40 分钟 ¥50 直达观音桥（带行李首选）' },
   { name: '里白酒店 · 寄存行李', lat: 29.572079, lng: 106.532343, type: 'hotel', time: '11:00',
     desc: '寄存行李，14:00 后正式入住',
-    detail: '北城艺术大厦 13 楼 · 3 号线观音桥站 2 号出口 100 米\n凌晨 4:30 起的床：下午回来午休，16:30 再出门' },
+    detail: '北城艺术大厦 13 楼 · 3 号线观音桥站 2 号出口 100 米\n凌晨 4:30 起的床：下午回来午休，16:30 再出门',
+    gmapKeyword: '里白酒店（观音桥步行街地铁站店）' },
   { name: '晓小面', lat: 29.576114, lng: 106.535965, type: 'food', time: '12:00',
     desc: '落地午饭：干馏豌杂，巷子里的苍蝇馆子', budget: '人均 15-20',
     detail: '备选：铁锅哥米线（泡椒米线），就在附近巷子',
@@ -1010,7 +1011,7 @@ const DAYS = [
     detail: '用户攻略 pick · 「每天排队」信号强',
     pay: { wechat: 1, alipay: 1 }, xhsKeyword: '重庆 沈如玉大排档' },
   { name: '若瑟堂 + 临江门旧书店', lat: 29.55655, lng: 106.573106, type: 'spot', time: '—',
-    desc: '顺路看，不专程' },
+    desc: '顺路看，不专程', gmapKeyword: '若瑟堂' },
 ]},
 { id: 3, label: 'D3 武隆', date: '11/22 周日', title: '武隆 · 天生三桥 + 龙水峡地缝（已订）', color: '#34c759', locations: [
   { name: '重庆东站', lat: 29.484365, lng: 106.673014, type: 'transport', time: '06:50',
@@ -1056,9 +1057,9 @@ const DAYS = [
   { name: '望江楼·老饭店', lat: 29.5825, lng: 106.4498, type: 'food', time: '11:15',
     desc: '早午饭 · 江边店老字号，毛血旺招牌，靠窗看江', budget: '人均 40-60',
     detail: '11:45 回程：1 号线 → 两路口换 3 号线回观音桥，12:15 取行李退房',
-    pay: { wechat: 1, alipay: 1 }, xhsKeyword: '重庆 望江楼 老饭店' },
+    pay: { wechat: 1, alipay: 1 }, xhsKeyword: '重庆 望江楼 老饭店', gmapKeyword: '望江楼老饭店' },
   { name: '里白酒店 · 退房取行李', lat: 29.572079, lng: 106.532343, type: 'hotel', time: '12:15',
-    desc: '取行李退房' },
+    desc: '取行李退房', gmapKeyword: '里白酒店（观音桥步行街地铁站店）' },
   { name: '江北机场 T3', lat: 29.708542, lng: 106.655482, type: 'transport', time: '15:55',
     desc: '13:15 打车约 40 分钟直达 T3',
     detail: '川航 3U8081 15:55 → 18:10 杭州萧山 T4\n午饭观音桥随便垫或机场解决（赶飞机不吃重餐）' },
@@ -1067,9 +1068,9 @@ const DAYS = [
 ]},
 ];
 
-// 导航搜索词：gmapKeyword 优先（本地人口诀），否则用店名去括注 +「重庆」；编码在使用处做
+// 导航搜索词：gmapKeyword 优先（本地人口诀），否则用全名（括号转空格、保留分店信息——连锁店靠它消歧）；编码在使用处做
 DAYS.forEach(d => d.locations.forEach(l => {
-  if (!l.gmap) l.gmap = l.gmapKeyword || (l.name.replace(/[（(].*?[）)]/g, '') + ' 重庆');
+  if (!l.gmap) l.gmap = l.gmapKeyword || l.name.replace(/[（(]/g, ' ').replace(/[）)]/g, ' ').replace(/\s+/g, ' ').trim();
 }));
 function overviewContent() {
   return `
@@ -1170,7 +1171,7 @@ function icon(color, emoji) {
   return L.divIcon({ className: '', html: `<div style="width:28px;height:28px;border-radius:50%;background:${color};border:2.5px solid #fff;display:flex;align-items:center;justify-content:center;font-size:13px;box-shadow:0 2px 8px rgba(0,0,0,.18)">${emoji||''}</div>`, iconSize: [28,28], iconAnchor: [14,14], popupAnchor: [0,-16] });
 }
 
-if (HOTEL.lat) L.marker([HOTEL.lat, HOTEL.lng], { icon: icon('#ff9500','🏨'), zIndexOffset: 1000 }).addTo(map).bindPopup(`<b>${HOTEL.name}</b>`);
+if (HOTEL.lat) L.marker([HOTEL.lat, HOTEL.lng], { icon: icon('#ff9500','🏨'), zIndexOffset: 1000 }).addTo(map).bindPopup(`<b>${HOTEL.name}</b><br><a href="#" onclick="event.preventDefault();openAS('${HOTEL.name.replace(/'/g,"\\'")}',${HOTEL.lat},${HOTEL.lng},'${encodeURIComponent(HOTEL.name)}')">📍 导航</a>`);
 
 let markers = [], polylines = [];
 const emojis = { food:'🍽️', spot:'📍', hotel:'🏨', transport:'🚃', drink:'🍺' };
