@@ -1237,9 +1237,17 @@ function showDay(idx) {
     const gmapQ = encodeURIComponent(l.gmap||l.name);
     m.bindPopup(`<b>${l.name}</b>${l.time!=='—'?'<br><span style="color:#86868b">'+l.time+'</span>':''}<br>${l.desc}${l.budget?'<br><span style="color:#ff9500">'+l.budget+'</span>':''}<br><a href="#" onclick="event.preventDefault();openAS('${l.name.replace(/'/g,"\\'")}',${l.lat},${l.lng},'${gmapQ}'${l.navSearch?',0':''})">📍 导航</a>${l.xhs?' · <a href="'+l.xhs+'" target="_blank">📕 小红书</a>':''}`);
     markers.push(m);
-    if(l.time!=='—') coords.push([l.lat,l.lng]);
+    if(l.time!=='—' && l.type!=='food' && l.type!=='drink') coords.push([l.lat,l.lng]);
   });
-  if(coords.length>1) { const pl = L.polyline(coords, { color:day.color, weight:2.5, opacity:.5, dashArray:'6,5' }).addTo(map); polylines.push(pl); }
+  // 游览顺序箭头：路线只串景点/交通/酒店——吃的在图上已有 🍽️ 图标区分，不进路线
+  if(coords.length>1) {
+    const pl = L.polyline(coords, { color:day.color, weight:2.5, opacity:.5, dashArray:'6,5' }).addTo(map); polylines.push(pl);
+    for(let i=0; i<coords.length-1; i++) {
+      const rot = Math.atan2(-(coords[i+1][0]-coords[i][0]), coords[i+1][1]-coords[i][1]) * 180 / Math.PI;
+      const ar = L.marker([(coords[i][0]+coords[i+1][0])/2, (coords[i][1]+coords[i+1][1])/2], { interactive:false, icon: L.divIcon({ className:'', iconSize:[18,18], iconAnchor:[9,9], html: `<div style="transform:rotate(${rot.toFixed(1)}deg);color:${day.color};font:12px/18px -apple-system;text-align:center;width:18px;height:18px;opacity:.9;text-shadow:0 0 2px #fff,0 0 3px #fff">➤</div>` }) }).addTo(map);
+      polylines.push(ar);
+    }
+  }
   if(coords.length) map.fitBounds(coords, { padding:[40,40], maxZoom:14 });
 }
 
